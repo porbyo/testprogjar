@@ -19,6 +19,23 @@ class BoxesGame(ConnectionListener):
         self.score_panel=pygame.image.load("score_panel.png")
         self.winningscreen=pygame.image.load("youwin.png")
         self.gameover=pygame.image.load("gameover.png")
+
+    def Network_place(self, data):
+        #get attributes
+        x = data["x"]
+        y = data["y"]
+        num = data["num"]
+        print "num:", num
+        print "playernum:", self.playernum
+        if num:
+            self.boardo[y][x]=True
+        else:
+            self.boardx[y][x]=True
+
+        if not (num==self.playernum):
+            self.turn = True
+        else:
+            self.turn = False
             
     def __init__(self):
         
@@ -87,15 +104,15 @@ class BoxesGame(ConnectionListener):
         win2 = myfont.render("Opponent Win", 1, (255,255,255))
                  
         #draw surface
-        if self.flag == 1:
+        if self.flag == 2:
             self.screen.blit(win1, (70, 340))
-        elif self.flag == 2:
+        elif self.flag == 1:
             self.screen.blit(win2, (70, 340))
         elif self.flag == 0:
             if self.playernum:
-                self.screen.blit(label1, (70, 340))
+                self.screen.blit(label2, (70, 340))
             else:
-                self.screen.blit(label2, (11, 340))
+                self.screen.blit(label1, (11, 340))
 
     def finished(self):
         self.screen.blit(self.gameover if self.flag == 2  else self.winningscreen, (0,0))
@@ -106,7 +123,7 @@ class BoxesGame(ConnectionListener):
             pygame.display.flip()
 
     def wincondition(self):
-        if self.playernum == 1:
+        if self.playernum == 0:
             if self.boardo[0][0]:
                 if (self.boardo[0][1] and self.boardo[0][2]) or (self.boardo[1][1] and self.boardo[2][2]) or (self.boardo[1][0] and self.boardo[2][0]):
                     self.flag = 1
@@ -127,7 +144,7 @@ class BoxesGame(ConnectionListener):
                 if self.boardo[2][1] and self.boardo[2][2]:
                     self.flag = 1
                     self.finished()
-        elif self.playernum == 0:
+        elif self.playernum == 1:
             if self.boardx[0][0]:
                 if (self.boardx[0][1] and self.boardx[0][2]) or (self.boardx[1][1] and self.boardx[2][2]) or (self.boardx[1][0] and self.boardx[2][0]):
                     self.flag = 2
@@ -185,16 +202,10 @@ class BoxesGame(ConnectionListener):
         else:
             alreadyplaced=False
 
-        if pygame.mouse.get_pressed()[0] and not alreadyplaced and not isoutofbounds:
-            if self.playernum:
-                self.boardo[ypos][xpos]=True
-                self.Send({"action": "place", "x":xpos, "y":ypos, "gameid": self.gameid, "num": self.num})
-            else:
-                self.boardx[ypos][xpos]=True
-                self.Send({"action": "place", "x":xpos, "y":ypos, "gameid": self.gameid, "num": self.num})
+        if pygame.mouse.get_pressed()[0] and not alreadyplaced and not isoutofbounds and self.turn==True:
+            self.Send({"action": "place", "x":xpos, "y":ypos, "gameid": self.gameid, "num": self.num})
 
         self.wincondition()
-    
         pygame.display.flip()
 
 
