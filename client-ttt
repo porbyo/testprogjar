@@ -7,51 +7,37 @@ class BoxesGame(ConnectionListener):
     def initGraphics(self):
         self.normallinev=pygame.image.load("normalline.png")
         self.normallineh=pygame.transform.rotate(pygame.image.load("normalline.png"), -90)
-        self.bar_doneh=pygame.image.load("xb.png")
-        self.bar_donev=pygame.image.load("ob.png")
-        self.hoverlineh=pygame.image.load("x.png")
-        self.hoverlinev=pygame.image.load("o.png")
-        self.redindicator=pygame.image.load("redindicator.png")
-        self.greenindicator=pygame.image.load("greenindicator.png")
+        self.bar_donex=pygame.image.load("xb.png")
+        self.bar_doneo=pygame.image.load("ob.png")
+        self.hoverlinex=pygame.image.load("x.png")
+        self.hoverlineo=pygame.image.load("o.png")
+        self.score_panel=pygame.image.load("score_panel.png")
         self.winningscreen=pygame.image.load("youwin.png")
         self.gameover=pygame.image.load("gameover.png")
-        self.score_panel=pygame.image.load("score_panel.png")
-
-    def Network_startgame(self, data):
-        self.running=True
-        self.playernum=data["playernum"]
-        self.num=data["player"]
-        self.gameid=data["gameid"]
-
+            
     def __init__(self):
-        self.gameid = None
-        self.num = None
-        self.Connect()
-        self.initGraphics()
-
-        self.boardh = [[False for x in range(3)] for y in range(4)]
-        self.boardv = [[False for x in range(4)] for y in range(3)]
-
+        
         self.boardx = [[False for x in range(3)] for y in range(3)]
-        self.boardy = [[False for x in range(3)] for y in range(3)]
+        self.boardo = [[False for x in range(3)] for y in range(3)]
+        self.playernum = 0
+        self.flag = 0
+        
         pass
 
         #1
         pygame.init()
-        pygame.font.init()
-        width, height = 305, 375
-
+        width, height = 305, 405
         #2
         #initialize the screen
         self.screen = pygame.display.set_mode((width, height))
-        pygame.display.set_caption("Box")
-
+        pygame.display.set_caption("Tic Tac Toe")
         #3
         #initialize pygame clock
         self.clock=pygame.time.Clock()
 
-        self.turn = True
-        
+        self.initGraphics()
+        self.Connect()
+
     def drawBoard(self):
         for x in range(3):
             for y in range(4):
@@ -59,87 +45,137 @@ class BoxesGame(ConnectionListener):
         for x in range(4):
             for y in range(3):
                 self.screen.blit(self.normallinev, [(x)*100, (y)*100+5])
-                
-    def drawBoard2(self):
+
         for x in range(3):
             for y in range(3):
                 if self.boardx[y][x]:
-                    self.screen.blit(self.bar_doneh, [(x)*100+12.5, (y)*100+12.5])
+                    self.screen.blit(self.bar_donex, [(x)*100+12.5, (y)*100+12.5])
         for x in range(3):
             for y in range(3):
-                if self.boardy[y][x]:
-                    self.screen.blit(self.bar_donev, [(x)*100+12.5, (y)*100+12.5])
+                if self.boardo[y][x]:
+                    self.screen.blit(self.bar_doneo, [(x)*100+12.5, (y)*100+12.5])
 
-    def drawHUD(self):
         self.screen.blit(self.score_panel, [0, 305])
+
         #create font
-        myfont = pygame.font.SysFont(None, 32)
+        myfont = pygame.font.SysFont(None, 50)
          
         #create text surface
-        label = myfont.render("Your Turn:", 1, (255,255,255))
-         
+        label1 = myfont.render("Your Turn", 1, (255,255,255))
+        label2 = myfont.render("Opponent's Turn", 1, (255,255,255))
+        win1 = myfont.render("You Win", 1, (255,255,255))
+        win2 = myfont.render("Opponent Win", 1, (255,255,255))
+                 
         #draw surface
-        self.screen.blit(label, (10, 320))
-
-        self.screen.blit(self.greenindicator, (130, 315))
-
-    def update(self):
-         
-        #sleep to make the game 60 fps
-        self.clock.tick(60)
-     
-        #clear the screen
-        self.screen.fill(0)
-
-        #draw the board
-        self.drawBoard()
-        self.drawBoard2()
-        self.drawHUD()
-     
-        for event in pygame.event.get():
-            #quit if the quit button was pressed
-            if event.type == pygame.QUIT:
-                exit()
-        #1
-        mouse = pygame.mouse.get_pos()
-         
-        #2
-        xpos = int(math.ceil((mouse[0]-100)/100.0))
-        ypos = int(math.ceil((mouse[1]-100)/100.0))
-
-        playernum = 0
-              
-        #5
-        board=self.boardv
-        isoutofbounds=False
-         
-        #6
-        try: 
-            if not board[ypos][xpos]: self.screen.blit(self.hoverlineh if playernum else self.hoverlinev, [xpos*100+12.5, ypos*100+12.5])
-        except:
-            isoutofbounds=True
-            pass
-        if not isoutofbounds:
-            alreadyplaced=board[ypos][xpos]
-        else:
-            alreadyplaced=False
-
-        if pygame.mouse.get_pressed()[0] and not alreadyplaced and not isoutofbounds:
-            if playernum:
-                self.boardx[ypos][xpos]=True
+        if self.flag == 1:
+            self.screen.blit(win1, (70, 340))
+        elif self.flag == 2:
+            self.screen.blit(win2, (70, 340))
+        elif self.flag == 0:
+            if self.playernum:
+                self.screen.blit(label1, (70, 340))
             else:
-                self.boardy[ypos][xpos]=True
-                
-        #update the screen
-        pygame.display.flip()
+                self.screen.blit(label2, (11, 340))
 
     def finished(self):
-        self.screen.blit(self.gameover if not self.didiwin else self.winningscreen, (0,0))
+        self.screen.blit(self.gameover if self.flag == 2  else self.winningscreen, (0,0))
         while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     exit()
             pygame.display.flip()
+
+    def wincondition(self):
+        if self.playernum == 1:
+            if self.boardo[0][0]:
+                if (self.boardo[0][1] and self.boardo[0][2]) or (self.boardo[1][1] and self.boardo[2][2]) or (self.boardo[1][0] and self.boardo[2][0]):
+                    self.flag = 1
+                    self.finished()
+            elif self.boardo[0][1]:
+                if self.boardo[1][1] and self.boardo[2][1]:
+                    self.flag = 1
+                    self.finished()
+            elif self.boardo[0][2]:
+                if (self.boardo[1][2] and self.boardo[2][2]) or (self.boardo[1][1] and self.boardo[2][0]):
+                    self.flag = 1
+                    self.finished()
+            elif self.boardo[1][0]:
+                if self.boardo[1][1] and self.boardo[1][2]:
+                    self.flag = 1
+                    self.finished()
+            elif self.boardo[2][0]:
+                if self.boardo[2][1] and self.boardo[2][2]:
+                    self.flag = 1
+                    self.finished()
+        elif self.playernum == 0:
+            if self.boardx[0][0]:
+                if (self.boardx[0][1] and self.boardx[0][2]) or (self.boardx[1][1] and self.boardx[2][2]) or (self.boardx[1][0] and self.boardx[2][0]):
+                    self.flag = 2
+                    self.finished()
+            elif self.boardx[0][1]:
+                if self.boardx[1][1] and self.boardx[2][1]:
+                    self.flag = 2
+                    self.finished()
+            elif self.boardx[0][2]:
+                if (self.boardx[1][2] and self.boardx[2][2]) or (self.boardx[1][1] and self.boardx[2][0]):
+                    self.flag = 2
+                    self.finished()
+            elif self.boardx[1][0]:
+                if self.boardx[1][1] and self.boardx[1][2]:
+                    self.flag = 2
+                    self.finished()
+            elif self.boardx[2][0]:
+                if self.boardx[2][1] and self.boardx[2][2]:
+                    self.flag = 2
+                    self.finished()
+
+    def update(self):
+        connection.Pump()
+        self.Pump()
+        
+        #sleep to make the game 60 fps
+        self.clock.tick(60)
+         
+        #clear the screen
+        self.screen.fill(0)
+     
+        self.drawBoard()
+                    
+        for event in pygame.event.get():
+            #quit if the quit button was pressed
+            if event.type == pygame.QUIT:
+                exit()
+
+
+        mouse = pygame.mouse.get_pos()
+             
+            
+        xpos = int(math.ceil((mouse[0]-100)/100.0))
+        ypos = int(math.ceil((mouse[1]-100)/100.0))     
+            
+        isoutofbounds=False
+        
+        try: 
+            if not (self.boardx[ypos][xpos] or self.boardo[ypos][xpos]): self.screen.blit(self.hoverlineo if self.playernum else self.hoverlinex, [xpos*100+12.5, ypos*100+12.5])
+        except:
+            isoutofbounds=True
+            pass
+        if not isoutofbounds:
+            alreadyplaced=self.boardx[ypos][xpos] or self.boardo[ypos][xpos]
+        else:
+            alreadyplaced=False
+
+        if pygame.mouse.get_pressed()[0] and not alreadyplaced and not isoutofbounds:
+            if self.playernum:
+                self.boardo[ypos][xpos]=True
+                self.playernum = 0
+            else:
+                self.boardx[ypos][xpos]=True
+                self.playernum = 1
+
+        self.wincondition()
+    
+        pygame.display.flip()
 
 
 bg=BoxesGame() #__init__ is called right here
