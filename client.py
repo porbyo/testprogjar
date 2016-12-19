@@ -100,22 +100,19 @@ class BoxesGame(ConnectionListener):
         #create text surface
         label1 = myfont.render("Your Turn", 1, (255,255,255))
         label2 = myfont.render("Opponent's Turn", 1, (255,255,255))
-        win1 = myfont.render("You Win", 1, (255,255,255))
-        win2 = myfont.render("Opponent Win", 1, (255,255,255))
                  
         #draw surface
-        if self.flag == 2:
-            self.screen.blit(win1, (70, 340))
-        elif self.flag == 1:
-            self.screen.blit(win2, (70, 340))
-        elif self.flag == 0:
-            if self.playernum:
-                self.screen.blit(label2, (70, 340))
+        if self.flag == 0:
+            if self.turn == True:
+                self.screen.blit(label1, (70, 340))
             else:
-                self.screen.blit(label1, (11, 340))
+                self.screen.blit(label2, (11, 340))
 
     def finished(self):
-        self.screen.blit(self.gameover if self.flag == 2  else self.winningscreen, (0,0))
+        if (self.flag == 2 and self.playernum == 0) or (self.flag == 1 and self.playernum == 1):
+            self.screen.blit(self.winningscreen, (0,0))
+        else:
+            self.screen.blit(self.gameover, (0,0))
         while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -123,48 +120,57 @@ class BoxesGame(ConnectionListener):
             pygame.display.flip()
 
     def wincondition(self):
-        if self.playernum == 0:
-            if self.boardo[0][0]:
-                if (self.boardo[0][1] and self.boardo[0][2]) or (self.boardo[1][1] and self.boardo[2][2]) or (self.boardo[1][0] and self.boardo[2][0]):
-                    self.flag = 1
-                    self.finished()
-            elif self.boardo[0][1]:
-                if self.boardo[1][1] and self.boardo[2][1]:
-                    self.flag = 1
-                    self.finished()
-            elif self.boardo[0][2]:
-                if (self.boardo[1][2] and self.boardo[2][2]) or (self.boardo[1][1] and self.boardo[2][0]):
-                    self.flag = 1
-                    self.finished()
-            elif self.boardo[1][0]:
-                if self.boardo[1][1] and self.boardo[1][2]:
-                    self.flag = 1
-                    self.finished()
-            elif self.boardo[2][0]:
-                if self.boardo[2][1] and self.boardo[2][2]:
-                    self.flag = 1
-                    self.finished()
-        elif self.playernum == 1:
-            if self.boardx[0][0]:
-                if (self.boardx[0][1] and self.boardx[0][2]) or (self.boardx[1][1] and self.boardx[2][2]) or (self.boardx[1][0] and self.boardx[2][0]):
-                    self.flag = 2
-                    self.finished()
-            elif self.boardx[0][1]:
-                if self.boardx[1][1] and self.boardx[2][1]:
-                    self.flag = 2
-                    self.finished()
-            elif self.boardx[0][2]:
-                if (self.boardx[1][2] and self.boardx[2][2]) or (self.boardx[1][1] and self.boardx[2][0]):
-                    self.flag = 2
-                    self.finished()
-            elif self.boardx[1][0]:
-                if self.boardx[1][1] and self.boardx[1][2]:
-                    self.flag = 2
-                    self.finished()
-            elif self.boardx[2][0]:
-                if self.boardx[2][1] and self.boardx[2][2]:
-                    self.flag = 2
-                    self.finished()
+        fl = 1
+        if self.boardo[0][0] and fl:
+            if (self.boardo[0][1] and self.boardo[0][2]) or (self.boardo[1][1] and self.boardo[2][2]) or (self.boardo[1][0] and self.boardo[2][0]):
+                self.flag = 1
+                fl = 0
+                self.finished()
+        if self.boardo[0][1] and fl:
+            if self.boardo[1][1] and self.boardo[2][1]:
+                self.flag = 1
+                fl = 0
+                self.finished()
+        if self.boardo[0][2] and fl:
+            if (self.boardo[1][2] and self.boardo[2][2]) or (self.boardo[1][1] and self.boardo[2][0]):
+                self.flag = 1
+                fl = 0
+                self.finished()
+        if self.boardo[1][0] and fl:
+            if self.boardo[1][1] and self.boardo[1][2]:
+                self.flag = 1
+                fl = 0
+                self.finished()
+        if self.boardo[2][0] and fl:
+            if self.boardo[2][1] and self.boardo[2][2]:
+                self.flag = 1
+                fl = 0
+                self.finished()
+        if self.boardx[0][0] and fl:
+            if (self.boardx[0][1] and self.boardx[0][2]) or (self.boardx[1][1] and self.boardx[2][2]) or (self.boardx[1][0] and self.boardx[2][0]):
+                self.flag = 2
+                fl = 0
+                self.finished()
+        if self.boardx[0][1] and fl:
+            if self.boardx[1][1] and self.boardx[2][1]:
+                self.flag = 2
+                fl = 0
+                self.finished()
+        if self.boardx[0][2] and fl:
+            if (self.boardx[1][2] and self.boardx[2][2]) or (self.boardx[1][1] and self.boardx[2][0]):
+                self.flag = 2
+                fl = 0
+                self.finished()
+        if self.boardx[1][0] and fl:
+            if self.boardx[1][1] and self.boardx[1][2]:
+                self.flag = 2
+                fl = 0
+                self.finished()
+        if self.boardx[2][0] and fl:
+            if self.boardx[2][1] and self.boardx[2][2]:
+                self.flag = 2
+                fl = 0
+                self.finished()
 
     def update(self):
         connection.Pump()
