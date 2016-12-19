@@ -1,0 +1,147 @@
+import pygame
+import math
+from PodSixNet.Connection import ConnectionListener, connection
+from time import sleep
+
+class BoxesGame(ConnectionListener):
+    def initGraphics(self):
+        self.normallinev=pygame.image.load("normalline.png")
+        self.normallineh=pygame.transform.rotate(pygame.image.load("normalline.png"), -90)
+        self.bar_doneh=pygame.image.load("xb.png")
+        self.bar_donev=pygame.image.load("ob.png")
+        self.hoverlineh=pygame.image.load("x.png")
+        self.hoverlinev=pygame.image.load("o.png")
+        self.redindicator=pygame.image.load("redindicator.png")
+        self.greenindicator=pygame.image.load("greenindicator.png")
+        self.winningscreen=pygame.image.load("youwin.png")
+        self.gameover=pygame.image.load("gameover.png")
+        self.score_panel=pygame.image.load("score_panel.png")
+
+    def Network_startgame(self, data):
+        self.running=True
+        self.playernum=data["playernum"]
+        self.num=data["player"]
+        self.gameid=data["gameid"]
+
+    def __init__(self):
+        self.gameid = None
+        self.num = None
+        self.Connect()
+        self.initGraphics()
+
+        self.boardh = [[False for x in range(3)] for y in range(4)]
+        self.boardv = [[False for x in range(4)] for y in range(3)]
+
+        self.boardx = [[False for x in range(3)] for y in range(3)]
+        self.boardy = [[False for x in range(3)] for y in range(3)]
+        pass
+
+        #1
+        pygame.init()
+        pygame.font.init()
+        width, height = 305, 375
+
+        #2
+        #initialize the screen
+        self.screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption("Box")
+
+        #3
+        #initialize pygame clock
+        self.clock=pygame.time.Clock()
+
+        self.turn = True
+        
+    def drawBoard(self):
+        for x in range(3):
+            for y in range(4):
+                self.screen.blit(self.normallineh, [(x)*100+5, (y)*100])
+        for x in range(4):
+            for y in range(3):
+                self.screen.blit(self.normallinev, [(x)*100, (y)*100+5])
+                
+    def drawBoard2(self):
+        for x in range(3):
+            for y in range(3):
+                if self.boardx[y][x]:
+                    self.screen.blit(self.bar_doneh, [(x)*100+12.5, (y)*100+12.5])
+        for x in range(3):
+            for y in range(3):
+                if self.boardy[y][x]:
+                    self.screen.blit(self.bar_donev, [(x)*100+12.5, (y)*100+12.5])
+
+    def drawHUD(self):
+        self.screen.blit(self.score_panel, [0, 305])
+        #create font
+        myfont = pygame.font.SysFont(None, 32)
+         
+        #create text surface
+        label = myfont.render("Your Turn:", 1, (255,255,255))
+         
+        #draw surface
+        self.screen.blit(label, (10, 320))
+
+        self.screen.blit(self.greenindicator, (130, 315))
+
+    def update(self):
+         
+        #sleep to make the game 60 fps
+        self.clock.tick(60)
+     
+        #clear the screen
+        self.screen.fill(0)
+
+        #draw the board
+        self.drawBoard()
+        self.drawBoard2()
+        self.drawHUD()
+     
+        for event in pygame.event.get():
+            #quit if the quit button was pressed
+            if event.type == pygame.QUIT:
+                exit()
+        #1
+        mouse = pygame.mouse.get_pos()
+         
+        #2
+        xpos = int(math.ceil((mouse[0]-100)/100.0))
+        ypos = int(math.ceil((mouse[1]-100)/100.0))
+
+        playernum = 0
+              
+        #5
+        board=self.boardv
+        isoutofbounds=False
+         
+        #6
+        try: 
+            if not board[ypos][xpos]: self.screen.blit(self.hoverlineh if playernum else self.hoverlinev, [xpos*100+12.5, ypos*100+12.5])
+        except:
+            isoutofbounds=True
+            pass
+        if not isoutofbounds:
+            alreadyplaced=board[ypos][xpos]
+        else:
+            alreadyplaced=False
+
+        if pygame.mouse.get_pressed()[0] and not alreadyplaced and not isoutofbounds:
+            if playernum:
+                self.boardx[ypos][xpos]=True
+            else:
+                self.boardy[ypos][xpos]=True
+                
+        #update the screen
+        pygame.display.flip()
+
+    def finished(self):
+        self.screen.blit(self.gameover if not self.didiwin else self.winningscreen, (0,0))
+        while 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    exit()
+            pygame.display.flip()
+
+
+bg=BoxesGame() #__init__ is called right here
+while 1:
+    bg.update()
