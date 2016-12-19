@@ -4,6 +4,11 @@ from PodSixNet.Connection import ConnectionListener, connection
 from time import sleep
 
 class BoxesGame(ConnectionListener):
+    def Network_startgame(self, data):
+        self.running=True
+        self.num=data["player"]
+        self.gameid=data["gameid"]
+    
     def initGraphics(self):
         self.normallinev=pygame.image.load("normalline.png")
         self.normallineh=pygame.transform.rotate(pygame.image.load("normalline.png"), -90)
@@ -19,7 +24,6 @@ class BoxesGame(ConnectionListener):
         
         self.boardx = [[False for x in range(3)] for y in range(3)]
         self.boardo = [[False for x in range(3)] for y in range(3)]
-        self.playernum = 0
         self.flag = 0
         
         pass
@@ -38,6 +42,22 @@ class BoxesGame(ConnectionListener):
         self.initGraphics()
         self.Connect()
 
+        self.gameid = None
+        self.num = None
+
+        self.running=False
+        while not self.running:
+            self.Pump()
+            connection.Pump()
+            sleep(0.01)
+        #determine attributes from player #
+        if self.num==0:
+            self.turn=True
+            self.playernum = 0
+        else:
+            self.turn=False
+            self.playernum = 1
+        
     def drawBoard(self):
         for x in range(3):
             for y in range(4):
@@ -168,10 +188,10 @@ class BoxesGame(ConnectionListener):
         if pygame.mouse.get_pressed()[0] and not alreadyplaced and not isoutofbounds:
             if self.playernum:
                 self.boardo[ypos][xpos]=True
-                self.playernum = 0
+                self.Send({"action": "place", "x":xpos, "y":ypos, "gameid": self.gameid, "num": self.num})
             else:
                 self.boardx[ypos][xpos]=True
-                self.playernum = 1
+                self.Send({"action": "place", "x":xpos, "y":ypos, "gameid": self.gameid, "num": self.num})
 
         self.wincondition()
     
