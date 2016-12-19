@@ -7,4 +7,6 @@ Anggit Yudhistira (5114100065)
 Rochman Soleh     (5114100140)
 
 Deskripsi Tugas :
-Kelompok kami membuat FP tentang Tic Tac Toe.
+Dalam final project mata kuliah pemrograman jaringan, kami mengimplementasikan ilmu yang telah didapatkan dengan membuat
+sebuah game tic tac toe. dimana dibagi antara server dan client. client yang pertama kali connect dengan server akan 
+dipasangkan dengan client yang connect setelahnya.
